@@ -19,7 +19,6 @@ patch = {
 element = {
     'type': type as above (string)
     'symbol': sym_name (string)
-    'context': amd64, i386, etc (string)
     'offset': offset (hex)
     'data_type': data_type (string)
     'data': byte string (string)

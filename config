@@ -2,10 +2,19 @@
     "element": [
     {
         "type": "TEXT",
-        "offset": "0xae0",
-        "context": "amd64",
+        "offset": "0xb00",
         "data_type": "ASM",
         "data": "push rdi\npush rsi",
+        "padding": "\\x00",
+        "padding_length": "1"
+    },
+
+    {
+        "type": "SYMTAB",
+        "symbol": "prctl",
+        "offset": "0",
+        "data_type": "PRINTABLE",
+        "data": "isnan",
         "padding": "\\x00",
         "padding_length": "1"
     }

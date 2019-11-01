@@ -22,7 +22,6 @@ class patcher:
     element = {
         'type': type as above (string)
         'symbol': sym_name (string)
-        'context': amd64, i386, etc (string)
         'offset': offset (hex)
         'data_type': data_type (string)
         'data': byte string (string)
@@ -34,9 +33,9 @@ class patcher:
     def __init__(self, elf, config):
         self.in_elf = ELF(elf)
         self.config = json.load(open(config))
+        context.arch = self.in_elf.arch
 
-    def patch_TEXT(self, element):
-        addr = int(element['offset'], 16)
+    def patch_addr(self, addr, element):
         patch_type = str(element['data_type'])
         padding_len = int(element['padding_length'], 16)
         patch = ''
@@ -44,7 +43,6 @@ class patcher:
         if patch_type == 'PRINTABLE':
             patch = str(element['data'])
         elif patch_type == 'ASM':
-            context.arch = str(element['context'])
             patch = asm(str(element['data']))
         elif patch_type == 'NONPRINTABLE':
             patch = element['data'].decode('string_escape')
@@ -59,9 +57,25 @@ class patcher:
             print(padding)
             self.in_elf.write(addr+patch_len, padding)
 
+    """
+    # Given offset of ELF, and patch it
+    """
+    def patch_TEXT(self, element):
+        addr = int(element['offset'], 16)
+        self.patch_addr(addr, element)
 
+    """
+    # Pick up first found string in ELF
+    # and replace it.
+    """
     def patch_SYMTAB(self, element):
-        raise NotImplemented()
+        symbol = str(element['symbol'])
+        addr = list(self.in_elf.search(symbol))
+        if addr != []:
+            self.patch_addr(addr[0], element)
+        else:
+            raise Exception('Can not found string %s' % symbol)
+
 
     def patch(self):
         for element in self.config['element']:
@@ -91,5 +105,4 @@ if __name__ == '__main__':
         p = patcher(in_file, patch_config)
         p.patch()
         p.output(out_file)
-
 
