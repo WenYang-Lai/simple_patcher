@@ -26,7 +26,7 @@ class patcher:
         'offset': offset (hex)
         'data_type': data_type (string)
         'data': byte string (string)
-        'padding': one byte (string)
+        'padding': one byte (string, Must NONPRINTABLE style)
         'padding_length': how many byte padding (hex)
     }
     """
