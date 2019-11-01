@@ -1,0 +1,13 @@
+{
+    "element": [
+    {
+        "type": "TEXT",
+        "offset": "0xae0",
+        "context": "amd64",
+        "data_type": "ASM",
+        "data": "push rdi\npush rsi",
+        "padding": "\\x00",
+        "padding_length": "1"
+    }
+    ]
+}
