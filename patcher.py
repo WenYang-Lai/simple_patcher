@@ -11,7 +11,6 @@ class patcher:
     # type = [ 'TEXT', 'SYMTAB' ]
     # data_type = [ 'ASM', 'PRINTABLE', 'NONPRINTABLE' ]
 
-
     """
     patch = {
         element = [
