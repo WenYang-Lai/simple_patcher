@@ -48,6 +48,15 @@ element = {
             "data": "isnan",
             "padding": "\\x00",
             "padding_length": "1"
+        },
+        {
+            "type": "HIJACK",
+            "trampoline_offset": "0xb1c",
+            "target_offset": "0x9ab",
+            "data_type": "ASM",
+            "data": "push rdi\n push rax",
+            "padding": "\\x00",
+            "padding_length": "0"
         }
     ]
 }

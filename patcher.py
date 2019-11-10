@@ -8,24 +8,37 @@ patch_config = ''
 
 
 class patcher:
-    # type = [ 'TEXT', 'SYMTAB' ]
-    # data_type = [ 'ASM', 'PRINTABLE', 'NONPRINTABLE' ]
+    # type = [ 'TEXT', 'SYMTAB', 'HIJACK']
+    # data_type = [ 'ASM', 'BYTE', ]
 
     """
     patch = {
         element = [
-
         ]
     }
 
     element = {
-        'type': type as above (string)
-        'symbol': sym_name (string)
+        'type': 'TEXT'
         'offset': offset (hex)
         'data_type': data_type (string)
         'data': byte string (string)
         'padding': one byte (string, Must NONPRINTABLE style)
         'padding_length': how many byte padding (hex)
+    }
+    element = {
+        'type': 'SYMTAB'
+        'symbol': sym_name (string)
+        'data_type': data_type (string)
+        'data': byte string (string)
+    }
+    element = {
+        'type': 'HIJACK'
+        'trampoline_offset': (hex)
+        'target_offset': (hex)
+        'data_type': data_type (string)
+        'data': byte string (string)
+        'padding': one byte (NONPRINTABLE, for target_offset !!! )
+        'padding_length': (hex)
     }
     """
 
@@ -34,16 +47,19 @@ class patcher:
         self.config = json.load(open(config))
         context.arch = self.in_elf.arch
 
+    def patch_padding(self, addr, byte, length):
+        padding = byte*length
+        print(padding)
+        self.in_elf.write(addr, padding)
+
+
     def patch_addr(self, addr, element):
         patch_type = str(element['data_type'])
-        padding_len = int(element['padding_length'], 16)
         patch = ''
 
-        if patch_type == 'PRINTABLE':
-            patch = str(element['data'])
-        elif patch_type == 'ASM':
+        if patch_type == 'ASM':
             patch = asm(str(element['data']))
-        elif patch_type == 'NONPRINTABLE':
+        elif patch_type == 'BYTE':
             patch = element['data'].decode('string_escape')
 
 
@@ -51,17 +67,18 @@ class patcher:
         patch_len = len(patch)
         self.in_elf.write(addr, patch)
 
-        if padding_len > 0:
-            padding = element['padding'].decode('string_escape')*padding_len
-            print(padding)
-            self.in_elf.write(addr+patch_len, padding)
+        return patch_len
 
     """
     # Given offset of ELF, and patch it
     """
     def patch_TEXT(self, element):
         addr = int(element['offset'], 16)
-        self.patch_addr(addr, element)
+        padding_len = int(element['padding_length'], 16)
+        patched_length = self.patch_addr(addr, element)
+        if padding_len > 0:
+            byte = element['padding'].decode('string_escape')
+            self.patch_padding(addr+patched_length, byte, padding_len)
 
     """
     # Pick up first found string in ELF
@@ -75,6 +92,25 @@ class patcher:
         else:
             raise Exception('Can not found string %s' % symbol)
 
+    def patch_HIJACK(self, element):
+        trampoline_addr = int(element['trampoline_offset'], 16)
+        target_addr = int(element['target_offset'], 16)
+        patched_length = self.patch_addr(trampoline_addr, element)
+        padding_len = int(element['padding_length'], 16)
+
+        # jump back
+        jmp_back_addr = trampoline_addr + patched_length
+        jmp_offset = target_addr+5 - (jmp_back_addr+5)
+        self.in_elf.write(jmp_back_addr, '\xe9' + struct.pack('<i', jmp_offset))
+
+        # jump entry
+        jmp_offset = trampoline_addr - (target_addr+5)
+        self.in_elf.write(target_addr, '\xe9' + struct.pack('<i', jmp_offset))
+
+        if padding_len > 0:
+            byte = element['padding'].decode('string_escape')
+            self.patch_padding(target_addr+5, byte, padding_len)
+
 
     def patch(self):
         for element in self.config['element']:
@@ -82,6 +118,8 @@ class patcher:
                 self.patch_TEXT(element)
             elif element['type'] == 'SYMTAB':
                 self.patch_SYMTAB(element)
+            elif element['type'] == 'HIJACK':
+                self.patch_HIJACK(element)
 
 
 
