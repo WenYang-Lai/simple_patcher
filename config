@@ -18,7 +18,7 @@
             "padding_length": "1"
         },
         {
-            "type": "HIJACK",
+            "type": "LJUMP",
             "trampoline_offset": "0xb1c",
             "target_offset": "0x9ab",
             "data_type": "ASM",

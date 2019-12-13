@@ -8,7 +8,7 @@ patch_config = ''
 
 
 class patcher:
-    # type = [ 'TEXT', 'SYMTAB', 'HIJACK']
+    # type = [ 'TEXT', 'SYMTAB', 'LJUMP']
     # data_type = [ 'ASM', 'BYTE', ]
 
     """
@@ -32,7 +32,7 @@ class patcher:
         'data': byte string (string)
     }
     element = {
-        'type': 'HIJACK'
+        'type': 'LJUMP'
         'trampoline_offset': (hex)
         'target_offset': (hex)
         'data_type': data_type (string)
@@ -54,14 +54,18 @@ class patcher:
 
 
     def patch_addr(self, addr, element):
-        patch_type = str(element['data_type'])
+        data_type = str(element['data_type'])
         patch = ''
 
-        if patch_type == 'ASM':
-            patch = asm(str(element['data']))
-        elif patch_type == 'BYTE':
-            patch = element['data'].decode('string_escape')
-
+        if 'data_path' not in element.keys():
+            if data_type == 'ASM':
+                patch = asm(str(element['data']))
+            elif data_type == 'BYTE':
+                patch = element['data'].decode('string_escape')
+        else:
+            patch = open(element['data_path'], 'r').read()
+            if data_type == 'ASM':
+                patch = asm(patch)
 
         # write patch code
         patch_len = len(patch)
@@ -92,7 +96,7 @@ class patcher:
         else:
             raise Exception('Can not found string %s' % symbol)
 
-    def patch_HIJACK(self, element):
+    def patch_LJUMP(self, element):
         trampoline_addr = int(element['trampoline_offset'], 16)
         target_addr = int(element['target_offset'], 16)
         patched_length = self.patch_addr(trampoline_addr, element)
@@ -118,8 +122,8 @@ class patcher:
                 self.patch_TEXT(element)
             elif element['type'] == 'SYMTAB':
                 self.patch_SYMTAB(element)
-            elif element['type'] == 'HIJACK':
-                self.patch_HIJACK(element)
+            elif element['type'] == 'LJUMP':
+                self.patch_LJUMP(element)
 
 
 

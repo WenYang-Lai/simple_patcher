@@ -7,8 +7,8 @@ $ python -i=input -o=output -config=config
 
 ### config format
 ```
-# type = [ 'TEXT', 'SYMTAB' ]
-# data_type = [ 'ASM', 'PRINTABLE', 'NONPRINTABLE' ]
+# type = [ 'TEXT', 'SYMTAB', 'LJUMP']
+# data_type = [ 'ASM', 'BYTE' ]
 
 """
 patch = {
@@ -44,13 +44,13 @@ element = {
             "type": "SYMTAB",
             "symbol": "prctl",
             "offset": "0",
-            "data_type": "PRINTABLE",
+            "data_type": "BYTE",
             "data": "isnan",
             "padding": "\\x00",
             "padding_length": "1"
         },
         {
-            "type": "HIJACK",
+            "type": "LJUMP",
             "trampoline_offset": "0xb1c",
             "target_offset": "0x9ab",
             "data_type": "ASM",
