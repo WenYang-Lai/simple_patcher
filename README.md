@@ -16,14 +16,12 @@ patch = {
     ]
 }
 element = {
-    'type': type as above (string)
-    'symbol': sym_name (string)
-    'offset': offset (hex)
-    'data_type': data_type (string)
-    'data': byte string (string)
-    'data_path': path to data (string)
-    'padding': one byte (string, Must NONPRINTABLE style)
-    'padding_length': how many byte padding (hex)
+    'type': type as above (string, required)
+    'data_type': data_type (string, required)
+    'data': byte string (string, optional)
+    'data_path': path to data (string, optional)
+    'padding': one byte (string, Must NONPRINTABLE style, required)
+    'padding_length': how many byte padding (hex, required)
 }
 """
 ```
